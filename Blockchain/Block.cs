@@ -4,16 +4,25 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization.Json;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace Blockchain
 {
+    [DataContract]
     public class Block
     {
         public int Id { get; private set; }
+        [DataMember]
         public string Data { get; private set; }
+        [DataMember]
         public DateTime Created { get; private set; }
+        [DataMember]
         public string Hash { get; private set; }
+        [DataMember]
         public string PreviousHash { get; private set; }
+        [DataMember]
         public string User { get; private set; }
         public Block()
         {
@@ -25,7 +34,7 @@ namespace Blockchain
 
             var data = GetData();
             Hash = GetHash(data);
-        }  
+        }
         public Block(string data, string user, Block block)
         {
             if (string.IsNullOrWhiteSpace(data))
@@ -45,7 +54,7 @@ namespace Blockchain
             PreviousHash = block.Hash;
             Created = DateTime.UtcNow;
             Id = block.Id + 1;
-           
+
             var blockData = GetData();
             Hash = GetHash(data);
         }
@@ -65,7 +74,7 @@ namespace Blockchain
             string hex = "";
 
             var hashValue = hashString.ComputeHash(message);
-            foreach(byte x in hashValue)
+            foreach (byte x in hashValue)
             {
                 hex += String.Format("{0:x2}", x);
             }
@@ -74,6 +83,27 @@ namespace Blockchain
         public override string ToString()
         {
             return Data;
+        }
+        public string Serialize()
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(Block));
+
+            using (var ms = new MemoryStream())
+            {
+                jsonSerializer.WriteObject(ms, this);
+                var result = Encoding.UTF8.GetString(ms.ToArray());
+                return result;
+            }
+        }
+        public static Block Deserialize(string json)
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(Block));
+
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var result = (Block)jsonSerializer.ReadObject(ms);
+                return result;
+            }
         }
     }
 }

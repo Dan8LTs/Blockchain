@@ -94,5 +94,11 @@ namespace Blockchain
             }
             return result;
         }
+        private void Sync()
+        {
+
+        }
+        
+
     }
 }
